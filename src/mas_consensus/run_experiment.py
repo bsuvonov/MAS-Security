@@ -120,6 +120,11 @@ if __name__ == "__main__":
             f"cannot exceed num_agents ({args.num_agents}). "
             f"Malicious agents must remain in discussion, and auditors are selected from remaining agents."
         )
+    if args.num_auditors != 3:
+        progress_logger.warning(
+            f"Expected exactly 3 auditors for the current workflow; configured {args.num_auditors}. "
+            "Consider rerunning with --num_auditors 3 for intended behavior."
+        )
 
     # Prepare deterministic index assignment:
     # - Auditors start from index 0 (if any auditors exist)
