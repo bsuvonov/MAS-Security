@@ -32,7 +32,7 @@ if __name__ == "__main__":
         "--dataset",
         type=str,
         required=True,
-        help="Dataset to use (e.g., csqa, gsm8k, fact, bias, adv)",
+        help="Dataset to use (e.g., csqa, gsm8k, fact, mmlu-pro)",
     )
     parser.add_argument(
         "--graph_type",
