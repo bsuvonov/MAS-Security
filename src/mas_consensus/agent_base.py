@@ -38,7 +38,7 @@ class BaseAgent:
         if system_prompt:
             self.dialogue.append({"role": "system", "content": system_prompt})
         
-        # Normalize model name for OpenRouter compatibility
+        # Normalize model name for ChatAnywhere/OpenAI compatibility
         self.normalized_model = methods.normalize_model_name(model_type)
         
         # Initialize API client with model type for intelligent routing
@@ -98,12 +98,13 @@ class BaseAgent:
                     ("not a valid model" in error_str or "Invalid model" in error_str or 
                      "No endpoints found" in error_str or "not found" in error_str.lower())):
                     self.logger.error(
-                        f"[INVALID_MODEL] Model '{self.model_type}' (normalized: '{self.normalized_model}') is not available on OpenRouter. "
-                        f"Check available models at https://openrouter.ai/models "
+                        f"[INVALID_MODEL] Model '{self.model_type}' (normalized: '{self.normalized_model}') is not available via ChatAnywhere. "
+                        f"Check the ChatAnywhere docs for supported models: https://api.chatanywhere.org/#/ "
                         f"Error: {error_str[:300]}"
                     )
                     assistant_msg = self.parser(
-                        f"Error: Model '{self.model_type}' not available. Check https://openrouter.ai/models"
+                        f"Error: Model '{self.model_type}' not available via ChatAnywhere. "
+                        f"Check https://api.chatanywhere.org/#/ for supported models."
                     )
                     self.dialogue.append(assistant_msg)
                     raise  # Don't retry - model not available

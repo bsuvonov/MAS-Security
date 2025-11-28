@@ -85,7 +85,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         type=str,
-        default="openai/gpt-4o-mini",
+        default="gpt-4o-mini",
         help="Model to use. Default: gpt-4o-mini",
     )
     parser.add_argument(

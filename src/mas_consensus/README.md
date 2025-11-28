@@ -21,6 +21,6 @@
 
 ## Quick Start
 
-1. Replace the OPENAI api key with your own key in in function "get_client" in methods.py
+1. Set your ChatAnywhere API key in the `CHATANYWHERE_API_KEY` environment variable (see `get_client` in methods.py)
 2. Set parameters in run.py
 3. Run run.py
