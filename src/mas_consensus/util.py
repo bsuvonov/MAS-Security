@@ -98,7 +98,14 @@ def run_dataset(
     attacker_system_prompt = prompts.discussion_prompt["attacker_system_prompt"]
 
     methods.create_directory(f"./src/output/{model}/{ds_name}/{sample_id}")
-    dataset = methods.get_dataset(f"./src/dataset/{ds_name}.jsonl")
+    dataset_path = Path(f"./src/dataset/{ds_name}.jsonl")
+    if not dataset_path.exists():
+        raise FileNotFoundError(
+            f"Dataset file not found for '{ds_name}' at {dataset_path}. "
+            "Provide the dataset file or remove this dataset from the experiment list."
+        )
+
+    dataset = methods.get_dataset(str(dataset_path))
     dataset = dataset[0:10]
 
     # Set up logging for this experiment run

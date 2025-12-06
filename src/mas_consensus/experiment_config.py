@@ -124,10 +124,18 @@ _CONFIG_REGISTRY = {
     ),
 }
 
+SUPPORTED_DATASETS = tuple(_CONFIG_REGISTRY.keys())
+
 
 def get_dataset_config(dataset_name: str) -> ExperimentConfig:
     """Fetches the experiment configuration for a given dataset name."""
     config = _CONFIG_REGISTRY.get(dataset_name)
     if config is None:
-        raise ValueError(f"No configuration found for dataset: {dataset_name}")
+        available = ", ".join(sorted(_CONFIG_REGISTRY.keys()))
+        raise ValueError(
+            f"No configuration found for dataset: {dataset_name}. "
+            f"Available datasets: {available}. "
+            "If you meant to add a new dataset, register it in experiment_config._CONFIG_REGISTRY "
+            "and provide a corresponding dataset file under ./src/dataset/."
+        )
     return config
