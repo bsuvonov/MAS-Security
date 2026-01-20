@@ -9,16 +9,12 @@ from . import logging_config
 
 def _extract_correct_answer(data, ds_name):
     """Extract the correct answer from dataset based on dataset type."""
-    if ds_name == "csqa":
+    if ds_name in ("csqa", "mmlu-pro"):
         return data.get("answerKey", "Unknown")
     elif ds_name == "gsm8k":
         return str(data.get("answer_number", "Unknown"))
     elif ds_name == "fact":
         return "True"
-    elif ds_name == "bias":
-        return "False"
-    elif ds_name == "adv":
-        return None  # No correct answer for adversarial prompts
     else:
         return "Unknown"
 
@@ -98,17 +94,18 @@ def run_dataset(
     adj_matrix = methods.generate_adj(num_agents, graph_type)
     mode = f"{graph_type}_{num_agents}_{len(attacker_idx)}{mode_suffix}"
 
-    if ds_name == "adv":
-        system_prompt = prompts.discussion_prompt["system_prompt"]
-        attacker_system_prompt = prompts.discussion_prompt[
-            "attacker_system_prompt_harm"
-        ]
-    else:
-        system_prompt = prompts.discussion_prompt["system_prompt"]
-        attacker_system_prompt = prompts.discussion_prompt["attacker_system_prompt"]
+    system_prompt = prompts.discussion_prompt["system_prompt"]
+    attacker_system_prompt = prompts.discussion_prompt["attacker_system_prompt"]
 
     methods.create_directory(f"./src/output/{model}/{ds_name}/{sample_id}")
-    dataset = methods.get_dataset(f"./src/dataset/{ds_name}.jsonl")
+    dataset_path = Path(f"./src/dataset/{ds_name}.jsonl")
+    if not dataset_path.exists():
+        raise FileNotFoundError(
+            f"Dataset file not found for '{ds_name}' at {dataset_path}. "
+            "Provide the dataset file or remove this dataset from the experiment list."
+        )
+
+    dataset = methods.get_dataset(str(dataset_path))
     dataset = dataset[0:10]
 
     # Set up logging for this experiment run
