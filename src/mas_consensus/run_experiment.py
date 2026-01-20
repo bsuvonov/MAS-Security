@@ -32,7 +32,7 @@ if __name__ == "__main__":
         "--dataset",
         type=str,
         required=True,
-        help="Dataset to use (e.g., csqa, gsm8k, fact, bias, adv)",
+        help="Dataset to use (e.g., csqa, gsm8k, fact, mmlu-pro)",
     )
     parser.add_argument(
         "--graph_type",
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         type=str,
-        default="openai/gpt-4o-mini",
+        default="gpt-4o-mini",
         help="Model to use. Default: gpt-4o-mini",
     )
     parser.add_argument(
@@ -119,6 +119,11 @@ if __name__ == "__main__":
             f"attacker_num ({args.attacker_num}) + num_auditors ({args.num_auditors}) = {args.attacker_num + args.num_auditors} "
             f"cannot exceed num_agents ({args.num_agents}). "
             f"Malicious agents must remain in discussion, and auditors are selected from remaining agents."
+        )
+    if args.num_auditors != 3:
+        progress_logger.warning(
+            f"Expected exactly 3 auditors for the current workflow; configured {args.num_auditors}. "
+            "Consider rerunning with --num_auditors 3 for intended behavior."
         )
 
     # Prepare deterministic index assignment:

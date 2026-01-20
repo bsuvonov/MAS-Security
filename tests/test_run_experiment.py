@@ -6,7 +6,8 @@ import pytest
 import os
 from unittest.mock import patch
 
-# Mock OPENAI_API_KEY before importing modules that need it
+# Mock ChatAnywhere/OpenAI API keys before importing modules that need them
+os.environ.setdefault("CHATANYWHERE_API_KEY", "test-key-for-testing")
 os.environ.setdefault("OPENAI_API_KEY", "test-key-for-testing")
 
 from src.mas_consensus import experiment_config, agent_base

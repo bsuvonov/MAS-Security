@@ -4,24 +4,26 @@ import numpy as np
 from openai import OpenAI
 
 
-def get_client(openai_api_key=None, model_type=None):
+def get_client(chatanywhere_api_key=None, model_type=None, base_url=None):
     """
-    Get OpenRouter API client for all models.
+    Get ChatAnywhere API client for all models.
     
-    OpenRouter model list: https://openrouter.ai/models
+    ChatAnywhere docs: https://api.chatanywhere.org/#/
     """
-    # Use OpenRouter for all models
-    if openai_api_key is None:
-        openai_api_key = os.environ.get("OPENAI_API_KEY")
-    if not openai_api_key:
+    if chatanywhere_api_key is None:
+        chatanywhere_api_key = (
+            os.environ.get("CHATANYWHERE_API_KEY")
+            or os.environ.get("OPENAI_API_KEY")
+        )
+    if not chatanywhere_api_key:
         raise ValueError(
-            "OPENAI_API_KEY environment variable required for OpenRouter. "
-            "Get your key from: https://openrouter.ai/"
+            "CHATANYWHERE_API_KEY environment variable required for ChatAnywhere. "
+            "Get your key from: https://api.chatanywhere.org/#/"
         )
     
     client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=openai_api_key
+        base_url=base_url or os.environ.get("CHATANYWHERE_BASE_URL", "https://api.chatanywhere.org/v1"),
+        api_key=chatanywhere_api_key
     )
     
     return client
@@ -29,42 +31,41 @@ def get_client(openai_api_key=None, model_type=None):
 
 def normalize_model_name(model_type):
     """
-    Normalize model names to OpenRouter format.
+    Normalize model names to ChatAnywhere/OpenAI format.
     
-    OpenRouter requires provider prefix (e.g., google/gemini-2.5-flash)
-    Check available models: https://openrouter.ai/models
+    ChatAnywhere expects OpenAI-style IDs without provider prefixes.
+    Check available models: https://api.chatanywhere.org/#/
     """
-    # If already has provider prefix, return as-is
+    # Strip provider prefixes (legacy OpenRouter-style names)
     if "/" in model_type:
-        return model_type
+        return model_type.split("/", 1)[1]
     
-    # Common model name mappings to OpenRouter format
-    # Note: Model availability on OpenRouter changes - verify at https://openrouter.ai/models
+    # Common model name mappings (kept to support older aliases)
     model_mappings = {
-        # Qwen models (OpenRouter format)
-        "qwen-max": "qwen/qwen-max",
-        "qwen-plus": "qwen/qwen-plus",
-        "qwen-turbo": "qwen/qwen-turbo",
+        # Qwen models
+        "qwen-max": "qwen-max",
+        "qwen-plus": "qwen-plus",
+        "qwen-turbo": "qwen-turbo",
         
         # Gemini models
-        "gemini-2.5-flash": "google/gemini-2.5-flash",
-        "gemini-2.0-flash": "google/gemini-2.0-flash", 
-        "gemini-flash": "google/gemini-flash-1.5",
-        "gemini-pro": "google/gemini-pro-1.5",
-        "gemini-1.5-flash": "google/gemini-flash-1.5",
-        "gemini-1.5-pro": "google/gemini-pro-1.5",
+        "gemini-2.5-flash": "gemini-2.5-flash",
+        "gemini-2.0-flash": "gemini-2.0-flash", 
+        "gemini-flash": "gemini-1.5-flash",
+        "gemini-pro": "gemini-1.5-pro",
+        "gemini-1.5-flash": "gemini-1.5-flash",
+        "gemini-1.5-pro": "gemini-1.5-pro",
         
         # GPT models
-        "gpt-4o": "openai/gpt-4o",
-        "gpt-4o-mini": "openai/gpt-4o-mini",
-        "gpt-4-turbo": "openai/gpt-4-turbo",
-        "gpt-3.5-turbo": "openai/gpt-3.5-turbo",
+        "gpt-4o": "gpt-4o",
+        "gpt-4o-mini": "gpt-4o-mini",
+        "gpt-4-turbo": "gpt-4-turbo",
+        "gpt-3.5-turbo": "gpt-3.5-turbo",
         
         # Claude models
-        "claude-3-opus": "anthropic/claude-3-opus",
-        "claude-3-sonnet": "anthropic/claude-3-sonnet",
-        "claude-3-haiku": "anthropic/claude-3-haiku",
-        "claude-3.5-sonnet": "anthropic/claude-3.5-sonnet",
+        "claude-3-opus": "claude-3-opus",
+        "claude-3-sonnet": "claude-3-sonnet",
+        "claude-3-haiku": "claude-3-haiku",
+        "claude-3.5-sonnet": "claude-3.5-sonnet",
     }
     
     # Return mapped name or original if not in mapping

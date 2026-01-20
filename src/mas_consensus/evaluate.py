@@ -9,8 +9,7 @@ from .evaluation import (
     evaluate_csqa,
     evaluate_gsm8k,
     evaluate_fact,
-    evaluate_bias,
-    evaluate_adv,
+    evaluate_mmlu_pro,
 )
 
 
@@ -32,14 +31,14 @@ def evaluate(dataset_path, output_path, attacker_num, auditor_num=2, type="MJA")
         accuracy = evaluate_csqa(
             dataset_path, output_path, attacker_num, auditor_num, type
         )
+    elif "mmlu-pro" in dataset_path:
+        accuracy = evaluate_mmlu_pro(
+            dataset_path, output_path, attacker_num, auditor_num, type
+        )
     elif "fact" in dataset_path:
         accuracy = evaluate_fact(dataset_path, output_path, attacker_num, type)
-    elif "bias" in dataset_path:
-        accuracy = evaluate_bias(dataset_path, output_path, attacker_num, type)
     elif "gsm8k" in dataset_path:
         accuracy = evaluate_gsm8k(dataset_path, output_path, attacker_num, type)
-    elif "adv" in dataset_path:
-        accuracy = evaluate_adv(output_path, attacker_num, type)
     else:
         raise ValueError(f"Unknown dataset type in path: {dataset_path}")
     return accuracy
@@ -96,14 +95,14 @@ if __name__ == "__main__":
         "--dataset",
         type=str,
         default="csqa",
-        help="Dataset name: csqa, gsm8k, fact, bias, adv",
+        help="Dataset name: csqa, gsm8k, fact, mmlu-pro",
     )
     parser.add_argument(
         "--datasets",
         type=str,
         nargs="+",
         default=None,
-        help="List of datasets to aggregate across (e.g., csqa gsm8k fact bias adv). If omitted and --aggregate_by_topology is set, will auto-detect from src/output/{model}/*",
+        help="List of datasets to aggregate across (e.g., csqa gsm8k fact mmlu-pro). If omitted and --aggregate_by_topology is set, will auto-detect from src/output/{model}/*",
     )
     parser.add_argument(
         "--model",
@@ -192,10 +191,8 @@ if __name__ == "__main__":
             accuracy = evaluate(dataset_path, file_path, attacker_num, auditor_num, eval_type)
             # Wrap in array to match normal mode structure (1 sample)
             metrics = np.array([accuracy])  # shape: (1, num_turns)
-            mean = np.mean(metrics, axis=0)  # same as accuracy, but consistent with normal mode
+            mean = np.round(100 * np.mean(metrics, axis=0), 2)  # same as accuracy, but consistent with normal mode
             variance = np.var(metrics, axis=0)  # variance of 1 sample = 0
-            if dataset != "adv":
-                mean = np.round(100 * mean, 2)
             change = np.round(mean[:-1] - mean[1:], 2) if len(mean) > 1 else np.array([])
             print("Mean", mean)
             if len(change) > 0:
@@ -214,10 +211,7 @@ if __name__ == "__main__":
     dataset = args.dataset
     model = args.model
     if model is None:
-        if dataset == "adv":
-            model = "gpt-3.5-turbo"
-        else:
-            model = "gpt-4o-mini"
+        model = "gpt-4o-mini"
     graph_types = args.graph_types
     agent_num = args.agent_num
     attacker_num = args.attacker_num
@@ -246,7 +240,7 @@ if __name__ == "__main__":
                 datasets_to_use = []
 
         # Known datasets in this repo
-        known_datasets = {"csqa", "gsm8k", "fact", "bias", "adv"}
+        known_datasets = {"csqa", "gsm8k", "fact", "mmlu-pro"}
         datasets_to_use = [d for d in datasets_to_use if d in known_datasets]
         if len(datasets_to_use) == 0:
             print("No valid datasets found to aggregate. Provide --datasets or check output directory.")
@@ -260,11 +254,6 @@ if __name__ == "__main__":
             min_turns = None
 
             for ds in datasets_to_use:
-                if ds == "adv" and eval_type == "MJA":
-                    # MJA not implemented for adv
-                    print(f"Skipping dataset '{ds}' for MJA aggregation (unsupported).")
-                    continue
-
                 ds_metrics = []
                 for sample_id in sample_ids:
                     base_filename = f"{ds}_{graph_type}_{agent_num}_{attacker_num}"
@@ -291,9 +280,8 @@ if __name__ == "__main__":
                 ds_metrics = np.array(ds_metrics)
                 ds_mean = np.mean(ds_metrics, axis=0)
 
-                # Normalize scaling (percentage) for non-adv datasets
-                if ds != "adv":
-                    ds_mean = 100.0 * ds_mean
+                # Normalize scaling (percentage) for all datasets
+                ds_mean = 100.0 * ds_mean
 
                 # Track min turn count to align
                 if min_turns is None:
@@ -394,7 +382,7 @@ if __name__ == "__main__":
                     base_filename += f"_type{output_type}"
                 base_filename += ".output"
                 
-                # All datasets use src/output directory (including adv)
+                # All datasets use src/output directory
                 output_path = f"src/output/{model}/{dataset}/{sample_id}/{base_filename}"
                 tqdm.write("evaluating file: " + output_path)
                 accuracy = evaluate(
@@ -402,10 +390,8 @@ if __name__ == "__main__":
                 )
                 metrics.append(accuracy)
             metrics = np.array(metrics)
-            mean = np.mean(metrics, axis=0)
+            mean = np.round(100 * np.mean(metrics, axis=0), 2)
             variance = np.var(metrics, axis=0)
-            if dataset != "adv":
-                mean = np.round(100 * mean, 2)
             change = np.round(mean[:-1] - mean[1:], 2)
             print("Mean", mean)
             print("Change", change)

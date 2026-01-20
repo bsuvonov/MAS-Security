@@ -1,4 +1,4 @@
-# AgentShield: Make MAS more secure and efficient
+# SolidWall: Secure and Efficient LLM Multi-Agent System
 
 A multi-agent system for consensus-based text processing, implementing the "NetSafe" approach for analyzing how reviewer avoid malicious nodes during the tasks with large language models.
 

@@ -26,7 +26,7 @@ fi
 ulimit -n 65536 
 
 # Read and execute experiments, skipping the header line
-tail -n +2 experiment3.psv | while IFS='|' read -r datasets graphs num_agents attacker_num malicious_auditor_num num_auditors type_one_attack type_two_attack both_attacks reg_turn sample_id threads model; do
+tail -n +2 experiment2.psv | while IFS='|' read -r datasets graphs num_agents attacker_num malicious_auditor_num num_auditors type_one_attack type_two_attack both_attacks reg_turn sample_id threads model; do
     # Skip empty lines
     if [ -z "$datasets" ]; then
         continue
@@ -43,7 +43,7 @@ tail -n +2 experiment3.psv | while IFS='|' read -r datasets graphs num_agents at
 
     # Expand dataset list
     if [ "$datasets" == "all" ]; then
-        dataset_list="csqa gsm8k fact bias adv"
+        dataset_list="csqa gsm8k fact mmlu-pro"
     else
         dataset_list="$datasets"
     fi
