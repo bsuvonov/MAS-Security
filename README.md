@@ -9,7 +9,7 @@ Based on the paper: [Netsafe](https://anonymous.4open.science/r/NetSafe-B726/REA
 1.  **Clone the repository:**
 
     ```sh
-    git clone git@github.com:bsuvonov/MAS-Consensus.git
+    git clone git@github.com:bsuvonov/MAS-Security.git
     cd MAS_Consensus
     ```
 
